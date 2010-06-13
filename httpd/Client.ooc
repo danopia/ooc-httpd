@@ -21,6 +21,8 @@ HttpClient: class {
   }
 
   handle: func {
+    if (reader available == 0) reader readMore(1) // to see if the socket died
+    
     while (reader hasLine?)
       handleLine(reader readUntil~Char2('\n')) // i have to slap ndd for this
   }
@@ -53,6 +55,8 @@ HttpClient: class {
   send: func (pkt: String) {
     writer write(pkt + "\r\n")
   }
+  
+  closed: Bool { get { reader closed } }
   
   headersOver: func {
     response := server handleRequest(request)

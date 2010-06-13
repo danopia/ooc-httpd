@@ -5,6 +5,7 @@ import net/[StreamSocket, Exceptions]
 BufferedStreamReader: class extends Reader {
   source: StreamSocket
   buffer: String
+  closed := false
 
   init: func ~BufferedSocketReader (=source) {
     buffer = String new(0)
@@ -16,8 +17,13 @@ BufferedStreamReader: class extends Reader {
   }
 
   readRaw: func~withSize(count: Int) -> String {
+    if (count == 0 && closed) return ""
+    
     string := String new(count)
-    source receive(string, count)
+    if (source receive(string, count) == 0) {
+      closed = true
+      return ""
+    }
     return string
   }
 
@@ -26,13 +32,16 @@ BufferedStreamReader: class extends Reader {
   }
 
   readMore: func~withSize(max: Int) -> Int {
+    if (max == 0 && closed) return 0
     string := readRaw(max)
     buffer += string
     return string length()
   }
 
   readMore!: func -> Int {
-    if (this hasNext?)
+    if (closed)
+      return 0
+    else if (this hasNext?)
       return readMore(source available())
     else
       return readMore(1) // can this be, say, 512 to reduce the number of reads while blocking for data?
@@ -42,7 +51,7 @@ BufferedStreamReader: class extends Reader {
     // does this really matter?
     //skip(offset - marker)
     
-    while (buffer length() < count) {
+    while (!closed && buffer length() < count) {
       readMore(count - (buffer length()))
     }
     
@@ -61,23 +70,20 @@ BufferedStreamReader: class extends Reader {
     }
   }
 
-  hasNext: func -> Bool {
-    source available() > 0
-  }
-  hasNext?: Bool {
-    get { source available() > 0 }
-  }
+  hasNext: func -> Bool { available > 0 }
+  
+  hasNext?: Bool { get { available > 0 } }
+  rawAvail?: Bool { get { source available() > 0 } }
+  veryEnd?: Bool { get { available == 0 } }
   
   hasLine?: Bool {
     get {
-      if (hasNext?) readMore()
+      if (rawAvail?) readMore()
       buffer contains('\n')
     }
   }
   
-  available: Int {
-    get { source available() }
-  }
+  available: Int { get { buffer length() + source available() } }
 
   rewind: func(offset: Int) {
     SocketError new("Sockets do not support rewind") throw()
@@ -92,7 +98,9 @@ BufferedStreamReader: class extends Reader {
   
   
   readUntil: func~Char2 (end: Char) -> String {
-    while (!buffer contains(end)) readMore!()
+    while (!closed && !buffer contains(end)) readMore!()
+    
+    if (veryEnd? || !buffer contains(end)) return ""
     
     string := buffer substring(0, buffer indexOf(end))
     buffer = buffer substring(string length() + 1)
@@ -100,7 +108,9 @@ BufferedStreamReader: class extends Reader {
   }
   
   readUntil: func~String2 (end: String) -> String {
-    while (!buffer contains(end)) readMore!()
+    while (!closed && !buffer contains(end)) readMore!()
+    
+    if (veryEnd? || !buffer contains(end)) return ""
     
     string := buffer substring(0, buffer indexOf(end))
     buffer = buffer substring(string length() + end length())

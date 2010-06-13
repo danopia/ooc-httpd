@@ -38,8 +38,14 @@ HttpServer: class {
     }
     
     for (client in clients)
-      if (read_fds contains?(client socket descriptor))
+      if (read_fds contains?(client socket descriptor)) {
         client handle()
+        
+        if (client closed) {
+          "Connection closed" println()
+          clients remove(client)
+        }
+      }
   }
   
   handleRequest: func (request: HttpRequest) -> HttpResponse {
