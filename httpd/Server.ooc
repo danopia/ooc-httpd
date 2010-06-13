@@ -5,11 +5,12 @@ import httpd/[Client, FdSet, Request, Response]
 solSocket: extern(SOL_SOCKET) Int
 soReuseAddr: extern(SO_REUSEADDR) Int
 
-HttpServer: class {
+HttpServer: abstract class {
   listener := ServerSocket new()
   clients := ArrayList<HttpClient> new()
   
-  init: func (port: Int) {
+  init: func { init(80) }
+  init: func~withPort (port: Int) {
     setsockopt(listener descriptor, solSocket, soReuseAddr, 1 as Int*, Int size)
     listener bind(port)
     listener listen(5)
@@ -50,10 +51,9 @@ HttpServer: class {
       }
   }
   
-  handleRequest: func (request: HttpRequest, response: HttpResponse) {
-    response status = 200
-    response body = "Hello, World!<br/><br/>This is %s<br/><br/>" format(request path)
-    
-    response body += "<form method=post action=submit><input type=text name=field1></input><input type=submit value=Save></input></form>"
+  run: func {
+    while (true) check()
   }
+  
+  handleRequest: abstract func (request: HttpRequest, response: HttpResponse)
 }
