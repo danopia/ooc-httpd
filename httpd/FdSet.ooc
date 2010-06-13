@@ -8,43 +8,65 @@ include sys/select
 include arpa/inet
 include netdb | (__USE_POSIX)
 
-FdMask: cover from __fd_mask extends Long
 
-__FdSet: cover from fd_set {
-    __fds_bits: extern FdMask[8] // __FD_SETSIZE / 8
+_TimeVal: cover from struct timeval {
+    tv_sec: extern Long
+    tv_usec: extern Long
 }
 
-_FdSet: cover from __FdSet* {
+TimeVal: cover from _TimeVal* {
     new: static func -> This {
-        it := gc_malloc(__FdSet size) as This
+        gc_malloc(_TimeVal size) as This
+    }
+    
+    new: static func~both (sec, usec: Long) -> This {
+        it := new()
+        it@ tv_sec = sec
+        it@ tv_usec = usec
+        it
+    }
+    
+    new: static func~together (seconds: Double) -> This {
+        useconds := seconds - (seconds as Long)
+        useconds *= 1000000
+        new(seconds as Long, useconds as Long)
+    }
+}
+
+
+FdMask: cover from __fd_mask extends Long
+FdBitLength: extern(__FD_SETSIZE) Int
+
+_FdSet: cover from fd_set {
+    __fds_bits: extern FdMask[FdBitLength / 8]
+}
+
+FdSet: cover from _FdSet* {
+    new: static func -> This {
+        it := gc_malloc(_FdSet size) as This
         it clear()
         it
     }
     
     
     clear: func {
-      "2 %p" format(this)  println()
-      "3 %p" format(__data) println()
-      
-      for (i in 0..7) {
-        "%i: %p %x" format(i, __data[i]&, __data[i]) println()
-        __data[i] = 0
-      }
+      for (i in 0..(FdBitLength / 8))
+        _data[i] = 0
     }
     
     add: func (bitNum: Int) {
         mask := _getMask(bitNum)
-        __data[mask min] |= mask max
+        _data[mask min] |= mask max
     }
     
     remove: func (bitNum: Int) {
         mask := _getMask(bitNum)
-        __data[mask min] &= !(mask max)
+        _data[mask min] &= !(mask max)
     }
     
     contains?: func (bitNum: Int) -> Bool {
         mask := _getMask(bitNum)
-        (__data[mask min] & mask max) == mask max
+        (_data[mask min] & mask max) == mask max
     }
     
     _getMask: func (bitNum: Int) -> Range {
@@ -55,5 +77,10 @@ _FdSet: cover from __FdSet* {
         return byteNum..mask
     }
     
-    __data: FdMask* { get { this } }
+    _data: FdMask* { get { this } }
 }
+
+setsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
+getsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
+
+select: extern func(n: Int, readfds, writefds, exceptfds: FdSet, timeout: TimeVal) -> Int

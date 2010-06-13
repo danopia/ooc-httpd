@@ -1,4 +1,3 @@
-import net/berkeley // for select
 import net/[StreamSocket, ServerSocket] // for the rest
 
 import structs/ArrayList
@@ -20,15 +19,13 @@ HttpServer: class {
   }
   
   check: func {
-    tv : TimeVal
-    tv tv_sec = 5
-    tv tv_usec = 0 // 1000 * 500
+    tv := TimeVal new(2.5)
     
     //FdSet size toString() println()
     //FdSet instanceSize toString() println()
     
     
-    read_fds := _FdSet new()
+    read_fds := FdSet new()
     //__zero(read_fds&)
     //__set(3, read_fds)
     
@@ -51,7 +48,7 @@ HttpServer: class {
         biggest = client socket descriptor
     }
     
-    select(biggest + 1, read_fds, null as _FdSet, null as _FdSet, tv&)
+    select(biggest + 1, read_fds, null as FdSet, null as FdSet, tv)
     
     if (read_fds contains?(listener descriptor)) {
     //if (__isSet(listener descriptor, read_fds&))
