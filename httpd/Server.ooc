@@ -20,6 +20,8 @@ HttpServer: class {
   
   check: func {
     tv := TimeVal new(2.5)
+    tv@ tv_sec toString() println()
+    tv@ tv_usec toString() println()
     
     //FdSet size toString() println()
     //FdSet instanceSize toString() println()
