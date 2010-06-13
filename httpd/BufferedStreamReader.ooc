@@ -47,7 +47,7 @@ BufferedStreamReader: class extends Reader {
       return readMore(1) // can this be, say, 512 to reduce the number of reads while blocking for data?
   }
   
-  read: func(chars: String, offset: Int, count: Int) -> SizeT {
+  read: func~full (chars: String, offset: Int, count: Int) -> SizeT {
     // does this really matter?
     //skip(offset - marker)
     
@@ -60,7 +60,7 @@ BufferedStreamReader: class extends Reader {
     return chars length()
   }
   
-  read: func(count: Int) -> String {
+  read: func~length (count: Int) -> String {
     while (!closed && buffer length() < count) {
       readMore(count - (buffer length()))
     }
@@ -70,7 +70,7 @@ BufferedStreamReader: class extends Reader {
     return ret
   }
   
-  read: func ~char -> Char {
+  read: func~char -> Char {
     if ((buffer length() > 0) || (readMore() > 0)) {
       char_ := buffer first()
       buffer = buffer substring(1)

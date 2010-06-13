@@ -31,26 +31,25 @@ HttpClient: class {
     line println()
     line = line trimRight('\n') trimRight('\r')
     
-    match state {
-      case 0 =>
-        request = HttpRequest new()
-        
-        parts := line split(' ') toArrayList()
-        request method = parts[0]
-        request path = parts[1]
-        request version = (parts[2] split('/') toArrayList())[1]
-        
-        state = 1
+    if (request) { // headers
+      if (line length() != 0) { // header line
+        parts := line split(": ", 2) toArrayList()
+        request headers[parts[0]] = parts[1]
+      } else if (request headers["Content-Length"]) { // has body
+        length := request headers["Content-Length"] toInt()
+        request body = reader read(length)
+        requestComplete()
+      } else { // bodyless
+        requestComplete()
+      }
+    
+    } else { // initial line
+      request = HttpRequest new()
       
-      case 1 =>
-        if (line length() != 0) {
-          parts := line split(": ", 2) toArrayList()
-          request headers[parts[0]] = parts[1]
-        } else if (request headers["Content-Length"]) {
-          length := request headers["Content-Length"] toInt()
-          request body = reader read(length)
-          requestComplete()
-        }
+      parts := line split(' ') toArrayList()
+      request method = parts[0]
+      request path = parts[1]
+      request version = (parts[2] split('/') toArrayList())[1]
     }
   }
   
