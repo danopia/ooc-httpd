@@ -43,11 +43,13 @@ HttpClient: class {
         state = 1
       
       case 1 =>
-        if (line length() == 0) {
-          headersOver()
-        } else {
+        if (line length() != 0) {
           parts := line split(": ", 2) toArrayList()
           request headers[parts[0]] = parts[1]
+        } else if (request headers["Content-Length"]) {
+          length := request headers["Content-Length"] toInt()
+          request body = reader read(length)
+          requestComplete()
         }
     }
   }
@@ -58,7 +60,7 @@ HttpClient: class {
   
   closed: Bool { get { reader closed } }
   
-  headersOver: func {
+  requestComplete: func {
     response := HttpResponse new(request)
     
     //response headers["Date"] = "Sun, 13 Jun 2010 19:01:34 GMT"

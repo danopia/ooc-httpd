@@ -60,6 +60,16 @@ BufferedStreamReader: class extends Reader {
     return chars length()
   }
   
+  read: func(count: Int) -> String {
+    while (!closed && buffer length() < count) {
+      readMore(count - (buffer length()))
+    }
+    
+    ret := buffer substring(0, count)
+    buffer = buffer substring(count)
+    return ret
+  }
+  
   read: func ~char -> Char {
     if ((buffer length() > 0) || (readMore() > 0)) {
       char_ := buffer first()
