@@ -1,9 +1,6 @@
 import net/[StreamSocket, ServerSocket] // for the rest
-
 import structs/ArrayList
-
-import httpd/Client
-import httpd/FdSet
+import httpd/[Client, FdSet, Request, Response]
 
 solSocket: extern(SOL_SOCKET) Int
 soReuseAddr: extern(SO_REUSEADDR) Int
@@ -43,5 +40,13 @@ HttpServer: class {
     for (client in clients)
       if (read_fds contains?(client socket descriptor))
         client handle()
+  }
+  
+  handleRequest: func (request: HttpRequest) -> HttpResponse {
+    response := HttpResponse new(request, 200)
+    
+    response body = "Hello, World!"
+    
+    response
   }
 }
