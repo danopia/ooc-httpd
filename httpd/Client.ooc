@@ -38,7 +38,7 @@ HttpClient: class {
         parts := line split(' ') toArrayList()
         request method = parts[0]
         request path = parts[1]
-        request version = parts[2] split('/') toArrayList() first()
+        request version = (parts[2] split('/') toArrayList())[1]
         
         state = 1
       
@@ -59,23 +59,28 @@ HttpClient: class {
   closed: Bool { get { reader closed } }
   
   headersOver: func {
-    response := server handleRequest(request)
+    response := HttpResponse new(request)
+    
+    //response headers["Date"] = "Sun, 13 Jun 2010 19:01:34 GMT"
+    response headers["Server"] = "ooc-httpd/0.0.1"
+    response headers["Content-Type"] = "text/html"
+    
+    server handleRequest(request, response)
     sendResponse(response)
+    
     request = null
     state = 0
   }
   
   sendResponse: func (response: HttpResponse) {
+    response headers["Content-Length"] = response body length() toString()
+    
     send("HTTP/%s %i %s" format(request version, response status, "OK"))
-    send("Date: Sun, 13 Jun 2010 19:01:34 GMT")
-    send("Server: Apache/2.2.12 (Ubuntu)")
-    //send("Last-Modified: Mon, 14 Dec 2009 01:35:45 GMT")
-    //send("ETag: \"4d84-b1-47aa64adc518f\"")
-    send("Accept-Ranges: bytes")
-    send("Content-Length: %i" format(response body length()))
-    send("Vary: Accept-Encoding")
-    send("Content-Type: text/html")
+    for (name in response headers getKeys()) {
+      send("%s: %s" format(name, response headers get(name)))
+    }
     send("")
+    
     send(response body)
   }
 }

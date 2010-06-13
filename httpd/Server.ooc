@@ -34,7 +34,9 @@ HttpServer: class {
     
     if (read_fds contains?(listener descriptor)) {
       "Got a connection" println()
-      clients add(HttpClient new(this, listener accept()))
+      socket := listener accept()
+      setsockopt(socket descriptor, solSocket, soReuseAddr, 1 as Int*, Int size)
+      clients add(HttpClient new(this, socket))
     }
     
     for (client in clients)
@@ -48,11 +50,8 @@ HttpServer: class {
       }
   }
   
-  handleRequest: func (request: HttpRequest) -> HttpResponse {
-    response := HttpResponse new(request, 200)
-    
+  handleRequest: func (request: HttpRequest, response: HttpResponse) {
+    response status = 200
     response body = "Hello, World!"
-    
-    response
   }
 }
