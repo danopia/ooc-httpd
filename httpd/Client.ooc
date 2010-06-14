@@ -69,6 +69,10 @@ HttpClient: class {
     server handleRequest(request, response)
     sendResponse(response)
     
+    // close until we have chunked
+    //socket close()
+    //server clients remove(this)
+    
     request = null
     state = 0
   }
@@ -82,6 +86,6 @@ HttpClient: class {
     }
     send("")
     
-    send(response body)
+    writer write(response body)
   }
 }
