@@ -66,6 +66,7 @@ HttpClient: class {
     //response headers["Date"] = "Sun, 13 Jun 2010 19:01:34 GMT"
     response headers["Server"] = "ooc-httpd/0.0.1"
     response headers["Content-Type"] = "text/html"
+    response headers["Connection"] = "close"
     
     server handleRequest(request, response)
     sendResponse(response)
