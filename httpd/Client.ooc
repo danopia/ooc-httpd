@@ -28,12 +28,11 @@ HttpClient: class {
   }
 
   handleLine: func (line: String) {
-    line println()
     line = line trimRight('\n') trimRight('\r')
     
     if (request) { // headers
       if (line length() != 0) { // header line
-        parts := line split(": ", 2) toArrayList()
+        parts := line split(": ", 1) toArrayList()
         request headers[parts[0]] = parts[1]
       } else if (request headers["Content-Length"]) { // has body
         length := request headers["Content-Length"] toInt()
@@ -44,6 +43,8 @@ HttpClient: class {
       }
     
     } else { // initial line
+      line println()
+      
       request = HttpRequest new()
       
       parts := line split(' ') toArrayList()

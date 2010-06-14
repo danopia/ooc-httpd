@@ -34,7 +34,7 @@ HttpServer: abstract class {
     select(biggest + 1, read_fds, null as FdSet, null as FdSet, tv)
     
     if (read_fds contains?(listener descriptor)) {
-      "Got a connection" println()
+      "Client connected" println()
       socket := listener accept()
       setsockopt(socket descriptor, solSocket, soReuseAddr, 1 as Int*, Int size)
       clients add(HttpClient new(this, socket))

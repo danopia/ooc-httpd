@@ -2,5 +2,5 @@ Name: Pure-ooc HTTP Server Lib
 Version: vcs
 Variant: src
 Origin: git://github.com/danopia/ooc-httpd.git
-Description: Implementation of an HTTP server, allowing easy page serving.
+Description: Implementation of an HTTP server, allowing fast page serving.
 SourcePath: .
