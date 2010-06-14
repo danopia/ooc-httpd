@@ -11,7 +11,7 @@ HttpServer: abstract class {
   
   init: func { init(80) }
   init: func~withPort (port: Int) {
-    setsockopt(listener descriptor, solSocket, soReuseAddr, 1 as Int*, Int size)
+    setsockopt(listener descriptor, solSocket, soReuseAddr, 1&, Int size)
     listener bind(port)
     listener listen(5)
   }
@@ -35,9 +35,7 @@ HttpServer: abstract class {
     
     if (read_fds contains?(listener descriptor)) {
       "Client connected" println()
-      socket := listener accept()
-      setsockopt(socket descriptor, solSocket, soReuseAddr, 1 as Int*, Int size)
-      clients add(HttpClient new(this, socket))
+      clients add(HttpClient new(this, listener accept()))
     }
     
     for (client in clients)
@@ -47,6 +45,7 @@ HttpServer: abstract class {
         if (client closed) {
           "Connection closed" println()
           clients remove(client)
+          client socket close()
         }
       }
   }
