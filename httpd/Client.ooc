@@ -1,6 +1,7 @@
 import net/StreamSocket
 import structs/[ArrayList, HashMap]
 import text/StringTokenizer
+import io/[Reader, Writer]
 
 import httpd/[BufferedStreamReader, Server, Request, Response]
 
@@ -66,7 +67,7 @@ HttpClient: class {
     //response headers["Date"] = "Sun, 13 Jun 2010 19:01:34 GMT"
     response headers["Server"] = "ooc-httpd/0.0.1"
     response headers["Content-Type"] = "text/html"
-    response headers["Connection"] = "close"
+    //response headers["Connection"] = "close"
     
     server handleRequest(request, response)
     sendResponse(response)
@@ -80,7 +81,10 @@ HttpClient: class {
   }
   
   sendResponse: func (response: HttpResponse) {
-    response headers["Content-Length"] = response body length() toString()
+    if (response body)
+      response headers["Content-Length"] = response body length() toString()
+    else
+      response headers["Transfer-Encoding"] = "chunked"
     
     send("HTTP/%s %i %s" format(request version, response status, "OK"))
     for (name in response headers getKeys()) {
@@ -88,6 +92,20 @@ HttpClient: class {
     }
     send("")
     
-    writer write(response body)
+    if (response body)
+      writer write(response body)
+    else {
+      buffer := String new(1024)
+      
+      while (response reader hasNext()) {
+        size := response reader read(buffer, 0, 1024)
+        writer write(size toHexString() + "\r\n")
+        writer write(buffer, size)
+        writer write("\r\n")
+      }
+      
+      // termination chunk
+      writer write("0\r\n\r\n")
+    }
   }
 }

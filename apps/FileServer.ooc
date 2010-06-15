@@ -50,7 +50,7 @@ FileServer: class extends HttpServer {
       response body += "</ul>"
     } else if (target isFile()) {
       response status = 200
-      response body = target read()
+      response reader = FileReader new(target)
       response headers["Content-Type"] = "text/plain"
     } else {
       response status = 500
