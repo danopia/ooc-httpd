@@ -40,11 +40,11 @@ FileServer: class extends HttpServer {
       response status = 200
       response body = "<h2>%s</h2><ul><li><a href=\"..\">..</a></li>" format(target name())
       for (child in target getChildren()) {
-        if (child isDir())
-          response body += "<li><a href=\"%s/\">%s</a></li>" format(child name(), child name())
+        if (!child isDir()) continue
+        response body += "<li><a href=\"%s/\">%s</a></li>" format(child name(), child name())
       }
       for (child in target getChildren()) {
-        if (child isFile())
+        if (!child isFile()) continue
         response body += "<li><a href=\"%s\">%s</a> (%i KiB)</li>" format(child name(), child name(), child size() / 1024)
       }
       response body += "</ul>"
