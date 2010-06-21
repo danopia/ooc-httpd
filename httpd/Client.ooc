@@ -33,6 +33,7 @@ HttpClient: class {
     
     if (request) { // headers
       if (line length() != 0) { // header line
+        line println()
         parts := line split(": ", 1) toArrayList()
         request headers[parts[0]] = parts[1]
       } else if (request headers["Content-Length"]) { // has body
@@ -50,7 +51,7 @@ HttpClient: class {
       
       parts := line split(' ') toArrayList()
       request method = parts[0]
-      request path = parts[1]
+      request setPath(parts[1])
       request version = (parts[2] split('/') toArrayList())[1]
     }
   }

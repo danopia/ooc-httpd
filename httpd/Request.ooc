@@ -3,9 +3,16 @@ import structs/[ArrayList, HashMap]
 import httpd/split
 
 HttpRequest: class {
-  method, path, version: String
+  method, path, queryString, version: String
   headers := HashMap<String, String> new()
   body: String = null
+  
+  setPath: func (path: String) {
+    parts := path splits('?', 1)
+    this path = parts[0]
+    if (parts size() > 1)
+      queryString = parts[1]
+  }
   
   hasData?: Bool { get { body != null } }
   
