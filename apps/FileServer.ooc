@@ -45,7 +45,18 @@ FileServer: class extends HttpServer {
       }
       for (child in target getChildren()) {
         if (!child isFile() || child name() startsWith('.')) continue
-        response body += "<li><a href=\"%s\">%s</a> (%i KiB)</li>" format(child name(), child name(), child size() / 1024)
+        
+        size := child size()
+        scale := "B"
+        
+        if (size > 1024*1024) {
+          size /= 1024*1024
+          scale = "MiB"
+        } else if (size > 1024) {
+          size /= 1024
+          scale = "KiB"
+        }
+        response body += "<li><a href=\"%s\">%s</a> (%i %s)</li>" format(child name(), child name(), size, scale)
       }
       response body += "</ul>"
     } else if (target isFile()) {
